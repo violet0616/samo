@@ -43,7 +43,7 @@ import numpy as np
 import statistics
 
 import sys
-sys.path.append('C:\\IC\\2023_project\\2023_project\\FpgaConvnet\\fpgaconvnet-tutorial\\samo\\samo')  # Add the path to the folder containing the cli script
+sys.path.append('C:\\IC\\2023_project\\2023_project\\FpgaConvnet_forked\\fpgaconvnet-tutorial\\samo\\samo')  # Add the path to the folder containing the cli script
 
 from samo.optimiser.annealing import SimulatedAnnealing
 from optimiser.rule import RuleBased
@@ -173,7 +173,7 @@ def main_for_multi(args):
                 # splits = exsuastive_search(valid_splits, 2)#find all possiblity for splitting in 3 parts, 
                             
                 # # Randomize search
-                # splits = random_search(valid_splits, 2, 5) # Randomise for 8 times , split twice
+                # splits = random_search(valid_splits, 2, 10) # Randomise for 8 times , split twice
                
                 # Memoryfootprint search
                 splits = mem_footprint_search(args,opt_copy,"BRAM_LUT_std") # strategy can be chosen form "BRAM_LUT_std" "max_BRAM" or "max_LUT"
@@ -194,6 +194,7 @@ def main_for_multi(args):
     
     #iterate over different splitting combination, 
     throughput_dict = {}
+    time_table = {}
     # for i in range(2):
     for i in (range(len(splitted_networks))):
         opt.network = copy.deepcopy(splitted_networks[i])
@@ -279,6 +280,9 @@ def main_for_multi(args):
         throughput_list = sorted([throughput1,throughput2,throughput3]) # in series , the ones with least throughput represent the overall partition.  
         throughput_dict[throughput_list[0]] = copy.deepcopy(networklist)
         
+        time_diff = time.time()-opt.start_time
+        time_table[time_diff]=throughput_list[0]
+        
         if opt1.network.check_constraints_multi_device(opt2.network) and \
             opt2.network.check_constraints_multi_device(opt3.network):
                 throughput_dict[throughput_list[0]] = copy.deepcopy(networklist)
@@ -290,8 +294,12 @@ def main_for_multi(args):
     
     #Sort out the network list which has max througput among all combinations.    
     sorted_components = sorted(throughput_dict.items(), key=lambda x: x[0],reverse=True)  
+    # End of optimisation 
+    opt.stop_time = time.time()
+    time_passed = opt.stop_time-opt.start_time
     overall_throughput_improve = sorted_components[0][0] // 0.005 
     print(f"The overall throuput has increased {overall_throughput_improve} times")
+    print(f"Time passed: {time_passed} s")
     # export the design
     exporter.export(sorted_components[0][1][0], args.model1, args.output_path1)
     exporter.export(sorted_components[0][1][1], args.model2, args.output_path2)
