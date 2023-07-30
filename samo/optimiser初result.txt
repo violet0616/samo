@@ -1,0 +1,99 @@
+Network opt1:
+------------
+
+Partition 0:
+------------
+
+  in (Mbps)    out (Mbps)  total (Mbps)
+-----------  ------------  --------------------------
+     208.98       1.22449  210.20408163265307/34112.0
+
+
+Layer                      Latency (cycles)    DSP    BRAM    LUT     FF
+-----------------------  ------------------  -----  ------  -----  -----
+sequential/conv1/Conv2D                7840     52      76   7976   9835
+sequential/ip1/MatMul                  6750      8      64  25629  35427
+ip2                                     450      4       6   8271  10079
+
+
+  Latency (cycles)  DSP       BRAM       LUT            FF
+------------------  --------  ---------  -------------  --------------
+              7840  64 / 220  146 / 280  41876 / 53200  55341 / 106400
+
+
+
+Network Summary:
+------------
+
+Objective: latency
+Batch Size: 1 (img/batch)
+Total Latency: 78.4 (us/batch)
+Total Throughput: 0.012755102040816325 (img/us)
+
+
+Network opt2:
+------------
+
+Partition 0:
+------------
+
+  in (Mbps)    out (Mbps)  total (Mbps)
+-----------  ------------  ---------------
+     2508.8          0.96  2509.76/34112.0
+
+
+Layer                       Latency (cycles)    DSP    BRAM    LUT     FF
+------------------------  ------------------  -----  ------  -----  -----
+sequential/pool1/MaxPool                7840      0       6   1806   2614
+sequential/conv2/Conv2D                10000    102     152  15981  19323
+sequential/pool2/MaxPool                1000      0       6   1806   2614
+sequential/ip1/MatMul                   9000      6      60  20749  28543
+ip2                                      600      3       5   6209   7562
+
+
+  Latency (cycles)  DSP        BRAM       LUT            FF
+------------------  ---------  ---------  -------------  --------------
+             10000  111 / 220  229 / 280  46551 / 53200  60656 / 106400
+
+
+
+Network Summary:
+------------
+
+Objective: latency
+Batch Size: 1 (img/batch)
+Total Latency: 100.0 (us/batch)
+Total Throughput: 0.01 (img/us)
+
+
+Network opt3:
+------------
+
+Partition 0:
+------------
+
+  in (Mbps)    out (Mbps)  total (Mbps)
+-----------  ------------  -------------------------
+    177.778       2.13333  179.9111111111111/34112.0
+
+
+Layer                      Latency (cycles)    DSP    BRAM    LUT     FF
+-----------------------  ------------------  -----  ------  -----  -----
+sequential/conv3/Conv2D                1800     20      30   5291   6908
+sequential/ip1/MatMul                  4500     12      72  34453  47851
+ip2                                     300      6       8  12394  15101
+
+
+  Latency (cycles)  DSP       BRAM       LUT            FF
+------------------  --------  ---------  -------------  --------------
+              4500  38 / 220  110 / 280  52138 / 53200  69860 / 106400
+
+
+
+Network Summary:
+------------
+
+Objective: latency
+Batch Size: 1 (img/batch)
+Total Latency: 45.0 (us/batch)
+Total Throughput: 0.022222222222222223 (img/us)

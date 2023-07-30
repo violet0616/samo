@@ -30,7 +30,7 @@ class RuleBased:
         all_config_candidate = []
         
         step = True
-        while step: #  while loop for itterratin each possible combination of configurartion, exclude the ones that has less total product in each loop
+        while step: #  while loop for iteratin each possible combination of configurartion, exclude the ones that has less total product in each loop
             step = False
             partition = self.network.partitions[partition_index]
 
@@ -131,7 +131,7 @@ class RuleBased:
                 if minimal_candidate != []:
                     self.network = minimal_candidate[0][1]
                     # store this config with min resource to list
-                    all_config_candidate.append(minimal_candidate[0])#latter 如果资源超了，可以回来试试第二的configurration
+                    all_config_candidate.append(minimal_candidate[0])#later如果资源超了，可以回来试试第二的configurration
                 
                 
                     
