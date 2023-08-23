@@ -44,13 +44,33 @@ import statistics
 
 import sys
 sys.path.append('C:\\IC\\2023_project\\2023_project\\FpgaConvnet_forked\\fpgaconvnet-tutorial\\samo\\samo')  # Add the path to the folder containing the cli script
+sys.path.append('C:\\IC\\2023_project\\2023_project\\FpgaConvnet_forked\\fpgaconvnet-tutorial')  # Add the path to the folder containing the cli script
+from Huffman_decoder import Huffman_decoder
+from Huffman_encoder import Huffman_encoder
 
 from samo.optimiser.annealing import SimulatedAnnealing
 from optimiser.rule import RuleBased
 from samo.optimiser.brute import BruteForce
 
-MY_HUFFMAN_CONSTANT = 3
+MY_HUFFMAN_CONSTANT = 2
 
+ # Includin the encoder information 
+encoder_0 = Huffman_encoder (B = 10, D = 10, F= 10, L= 10, Rate = 1)
+encoder_1 = Huffman_encoder (B = 10, D = 10, F= 10, L= 10, Rate = 1)
+encoder_2 = Huffman_encoder (B = 10, D = 10, F= 10, L= 10, Rate = 1)
+encoder_3 = Huffman_encoder (B = 10, D = 10, F= 10, L= 10, Rate = 1)
+encoder_4 = Huffman_encoder (B = 10, D = 10, F= 10, L= 10, Rate = 2)
+encoder_5 = Huffman_encoder (B = 10, D = 10, F= 10, L= 10, Rate = 1)
+encoder_6 = Huffman_encoder (B = 10, D = 10, F= 10, L= 10, Rate = 1)
+encoder_from_PS = Huffman_encoder (B = 0, D = 0, F= 0, L= 0, Rate = 1)
+
+decoder_0 = Huffman_decoder (B = 10, D = 10, F= 10, L= 10, Rate = 1)
+decoder_1 = Huffman_decoder (B = 10, D = 10, F= 10, L= 10, Rate = 1)
+decoder_2 = Huffman_decoder (B = 10, D = 10, F= 10, L= 10, Rate = 1)
+decoder_3 = Huffman_decoder (B = 10, D = 10, F= 10, L= 10, Rate = 1)
+decoder_4 = Huffman_decoder (B = 10, D = 10, F= 10, L= 10, Rate = 2)
+decoder_5 = Huffman_decoder (B = 10, D = 10, F= 10, L= 10, Rate = 1)
+decoder_6 = Huffman_decoder (B = 10, D = 10, F= 10, L= 10, Rate = 1)
 
 def main_for_multi_plus_Huffman(args):
     # logging configuration
@@ -211,6 +231,12 @@ def main_for_multi_plus_Huffman(args):
         
         opt1.network.partitions.remove(opt1.network.partitions[1])
         opt1.network.partitions.remove(opt1.network.partitions[1])
+        opt1_encoder, opt1_decoder = matching_Huffman_encoder_decoder(args, opt1)
+        
+        # if (opt1.network.partitions[0].input_node == "sequential/conv1/Conv2D"):
+        #     cd =1
+            
+        # matching_Huffman_encoder_decoder
         
         opt2.network.partitions.remove(opt2.network.partitions[0])
         opt2.network.partitions.remove(opt2.network.partitions[1])
@@ -260,19 +286,16 @@ def main_for_multi_plus_Huffman(args):
                     if prev and not opt3.network.check_constraints_Huffman(MY_HUFFMAN_CONSTANT,MY_HUFFMAN_CONSTANT):
                         can_split_3 = False
                         opt3.network = network_copy
-        
-                        
+                                
         # validate generated design
         assert opt1.network.check_constraints_Huffman(MY_HUFFMAN_CONSTANT,MY_HUFFMAN_CONSTANT),"Intial design infeasible!"
         assert opt2.network.check_constraints_Huffman(MY_HUFFMAN_CONSTANT,MY_HUFFMAN_CONSTANT),"Intial design infeasible!"
         assert opt3.network.check_constraints_Huffman(MY_HUFFMAN_CONSTANT,MY_HUFFMAN_CONSTANT),"Intial design infeasible!"
         
-        
-        
         # run the optimiser
-        opt1.optimise_multi_FPGA_Huffman(MY_HUFFMAN_CONSTANT,MY_HUFFMAN_CONSTANT)
-        opt2.optimise_multi_FPGA_Huffman(MY_HUFFMAN_CONSTANT,MY_HUFFMAN_CONSTANT)
-        opt3.optimise_multi_FPGA_Huffman(MY_HUFFMAN_CONSTANT,MY_HUFFMAN_CONSTANT)
+        opt1.optimise_multi_FPGA_Huffman_plus(MY_HUFFMAN_CONSTANT,MY_HUFFMAN_CONSTANT,opt1_encoder, opt1_decoder)
+        opt2.optimise_multi_FPGA_Huffman_plus(MY_HUFFMAN_CONSTANT,MY_HUFFMAN_CONSTANT,encoder_0, decoder_1)
+        opt3.optimise_multi_FPGA_Huffman_plus(MY_HUFFMAN_CONSTANT,MY_HUFFMAN_CONSTANT,encoder_0, decoder_1)
        
         # validate generated design
         # assert opt1.network.check_constraints(),"Optimised design infeasible!"
@@ -312,8 +335,7 @@ def main_for_multi_plus_Huffman(args):
     exporter.export(sorted_components[0][1][0], args.model1, args.output_path1)
     exporter.export(sorted_components[0][1][1], args.model2, args.output_path2)
     exporter.export(sorted_components[0][1][2], args.model3, args.output_path3)
-    
-    
+        
 def main_for_multi(args):
     # logging configuration
     logging.basicConfig(filename='samo.log', filemode='w', level=logging.INFO)
@@ -836,7 +858,30 @@ def main_for_one_split_Conv(args):
     # export the design
     exporter.export(opt.network, args.model, args.output_path)
 
+def matching_Huffman_encoder_decoder(args, current_opt, previous_opt=None):
+    mapping_dict = {
+    "sequential/conv1/Conv2D": [encoder_0, decoder_0],
+    "sequential/pool1/MaxPool":[encoder_1, decoder_1],
+    "sequential/conv2/Conv2D": [encoder_2, decoder_2],
+    "sequential/pool2/MaxPool": [encoder_3, decoder_3],
+    "sequential/conv3/Conv2D": [encoder_4, decoder_4],
+    "sequential/ip1/MatMul": [encoder_5, decoder_5],
+    "ip2": [encoder_6, decoder_6]
+    }
+        
+    
+    if previous_opt != None:    
+        if previous_opt.network.partitions[0].output_node in mapping_dict:
+            decoder = mapping_dict[previous_opt.network.partitions[0].output_node][1]
+    else:
+        decoder = encoder_from_PS
 
+        
+    if current_opt.network.partitions[0].input_node in mapping_dict:
+        encoder = mapping_dict[current_opt.network.partitions[0].input_node][0]    
+            
+    return encoder, decoder
+    
 if __name__ == "__main__":
     main(sys.argv[1:])
 
@@ -1207,3 +1252,4 @@ def main(args):
 
     # export the design
     exporter.export(opt.network, args.model, args.output_path)
+

@@ -152,7 +152,7 @@ class RuleBased:
 
         return True
 
-    def optimise_single_partition_Huffman(self, partition_index, Huffmanencode_rate, Huffmandecode_rate):
+    def optimise_single_partition_Huffman(self, partition_index, Huffmanencode_rate, Huffmandecode_rate,encoder,decoder):
         if not self.network.partitions[partition_index].check_constraints():
             return False
 
@@ -236,7 +236,8 @@ class RuleBased:
                     self.update()
 
                     # check the network is within platform resource constraints
-                    if self.network.check_constraints_Huffman(Huffmanencode_rate, Huffmandecode_rate):#如果resource 够用则整个network存在dictionary里
+                    if self.network.check_constraints_Huffman_plus(Huffmanencode_rate, Huffmandecode_rate, encoder, decoder):
+                    # if self.network.check_constraints_Huffman(Huffmanencode_rate, Huffmandecode_rate):#如果resource 够用则整个network存在dictionary里
                         step_candidates[config] = copy.deepcopy(self.network)
                         next_folding_candidates.append(np.prod(config))
                         next_folding_candidates = list(set(next_folding_candidates))
@@ -472,7 +473,7 @@ class RuleBased:
             # increment while loop iterration index 
             i+=1
     
-    def merge_partitions_Huffman(self,Huffmanencode_rate, Huffmandecode_rate):
+    def merge_partitions_Huffman(self,Huffmanencode_rate, Huffmandecode_rate,encoder,decoder):
         # print("resolving memory bound partitions")
         reject_list = []
         i =0 
@@ -520,7 +521,7 @@ class RuleBased:
             self.network.merge(merge_pair)
 
             # optimise the new partition
-            status = self.optimise_single_partition_Huffman(merge_pair[0],Huffmanencode_rate, Huffmandecode_rate)
+            status = self.optimise_single_partition_Huffman(merge_pair[0],Huffmanencode_rate, Huffmandecode_rate,encoder,decoder)
 
             # only keep if it can merge, and the performance is better
             if not status or self.network.eval_cost() >= cost:
@@ -573,4 +574,13 @@ class RuleBased:
         print("Optimizing each partition on multi FPGA done, start merging......")
         self.merge_partitions_Huffman(Huffmanencode_rate, Huffmandecode_rate)
         
-        
+    def optimise_multi_FPGA_Huffman_plus(self, Huffmanencode_rate, Huffmandecode_rate,encoder,decoder):
+        # optimise the single partitions on their own
+        for partition_index in tqdm(range(len(self.network.partitions)), desc="optimising  partitions"):
+            print(f"Partition {partition_index}:\n------------\n")
+
+            self.optimise_single_partition_Huffman(partition_index, Huffmanencode_rate, Huffmandecode_rate, encoder, decoder)#中间包括一步检查resource, BW.
+
+        # merge partitions
+        print("Optimizing each partition on multi FPGA done, start merging......")
+        self.merge_partitions_Huffman(Huffmanencode_rate, Huffmandecode_rate,encoder,decoder)
